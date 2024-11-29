@@ -1,0 +1,20 @@
+Accuracy train: 90.14
+Accuracy test: 69.33
+Best params: {'C': 1, 'gamma': 'scale', 'kernel': 'rbf'}
+------
+Accuracy train: 75.36
+Accuracy test: 67.17
+Best params: {'C': 1, 'gamma': 0.1, 'kernel': 'rbf'}
+------
+Accuracy train: 99.71
+Accuracy test: 64.33
+Best params: {'C': 10, 'gamma': 'scale', 'kernel': 'rbf'}
+------
+Accuracy train: 90.29
+Accuracy test: 68.33
+Best params: {'C': 1, 'gamma': 'scale', 'kernel': 'rbf'}
+------
+Accuracy train: 90.36
+Accuracy test: 69.67
+Best params: {'C': 1, 'gamma': 'scale', 'kernel': 'rbf'}
+------
