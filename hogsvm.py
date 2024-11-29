@@ -4,6 +4,10 @@ from PIL import Image
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 import cv2
+from skimage.feature import hog
+from sklearn import svm
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import accuracy_score
 
 train_data_dir = '../archive/dogvscat_small/train'
 
@@ -23,7 +27,7 @@ def load_data(data_dir, img_width=84, img_height=84):
 
         for image_name in os.listdir(class_dir):
             image_path = os.path.join(class_dir, image_name)
-            image = Image.open(image_path).convert('RGB')
+            image = Image.open(image_path).convert('L')
             image = image.resize((img_width, img_height))
             image = normalize_image(np.array(image))
 
@@ -36,14 +40,41 @@ def load_data(data_dir, img_width=84, img_height=84):
 
 train_datas, train_labels = load_data(train_data_dir)
 
-X_train, X_test, y_train, y_test = train_test_split(train_datas, train_labels, test_size=0.3, random_state=1)
+X_train, X_test, y_train, y_test = train_test_split(train_datas, train_labels, test_size=0.3)
 
-print('X_train:', X_train.shape)
-plt.imshow(X_train[0])
-plt.show()
-print('y_train:', y_train[0])
+X_train_hog = []
+X_train_hog_features = []
+X_test_hog = []
+X_test_hog_features = []
+for image_train in X_train:
+    fd, hog_image = hog(image_train, orientations=8, pixels_per_cell=(16, 16), cells_per_block=(1, 1), visualize=True)
+    X_train_hog.append(hog_image)
+    X_train_hog_features.append(fd)
 
-for i in range(10):
-    print('y_train:', y_train[i])
-    plt.imshow(X_train[i])
-    plt.show()
+for image_test in X_test:
+    fd, hog_image = hog(image_test, orientations=8, pixels_per_cell=(16, 16), cells_per_block=(1, 1), visualize=True)
+    X_test_hog.append(hog_image)
+    X_test_hog_features.append(fd)
+
+X_train_hog_features = np.array(X_train_hog_features)
+X_test_hog_features = np.array(X_test_hog_features)
+
+params = {'C': [1, 10, 100],
+          'gamma': ['scale', 'auto', 0.1, 0.01],
+          'kernel': ['rbf', 'linear', 'poly', 'sigmoid']}
+
+clf = svm.SVC()
+
+grid = GridSearchCV(clf, params, refit=True, verbose=3, cv=4)
+
+grid.fit(X_train_hog_features, y_train)
+
+Y_pred_train = grid.predict(X_train_hog_features)
+accuracy = accuracy_score(y_train, Y_pred_train)
+print(f'Accuracy train: {100*accuracy:.2f}')
+
+Y_pred = grid.predict(X_test_hog_features)
+accuracy = accuracy_score(y_test, Y_pred)
+print(f'Accuracy test: {100*accuracy:.2f}')
+
+print(grid.best_params_)
